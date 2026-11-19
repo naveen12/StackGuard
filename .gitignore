@@ -7,3 +7,7 @@ coverage/
 .env*
 !.env.example
 .idea/
+android/build/
+android/app/build/
+android/.gradle/
+*.apk
