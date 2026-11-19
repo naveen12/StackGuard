@@ -1,0 +1,145 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Obsidian Sentinel Surface & Color Tokens */
+  --color-canvas: #090d16;
+  --color-surface: #0f131c;
+  --color-surface-lowest: #0a0e17;
+  --color-surface-low: #181b25;
+  --color-surface-container: #1c1f29;
+  --color-surface-high: #262a34;
+  --color-surface-highest: #31353f;
+  --color-slate-midnight: #111827;
+  --color-slate-elevated: #1e293b;
+
+  --color-on-surface: #dfe2ef;
+  --color-on-surface-variant: #bdc8d1;
+  --color-muted: #94a3b8;
+  --color-outline: #87929a;
+  --color-outline-variant: #3e484f;
+
+  --color-primary: #38bdf8;
+  --color-primary-bright: #8ed5ff;
+  --color-on-primary: #090d16;
+  --color-secondary: #6366f1;
+  --color-secondary-soft: #c0c1ff;
+  --color-tertiary: #56e5a9;
+
+  /* Threat Severity Tokens */
+  --color-sev-critical: #ef4444;
+  --color-sev-critical-text: #f87171;
+  --color-sev-high: #f97316;
+  --color-sev-high-text: #fb923c;
+  --color-sev-moderate: #f59e0b;
+  --color-sev-moderate-text: #fbbf24;
+  --color-sev-low: #64748b;
+  --color-sev-low-text: #94a3b8;
+  --color-sev-safe: #10b981;
+  --color-sev-safe-text: #34d399;
+
+  /* Typography */
+  --font-display: "Geist", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@layer base {
+  html {
+    background-color: #090d16;
+    color: #dfe2ef;
+    font-family: var(--font-sans);
+    color-scheme: dark;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+  }
+
+  code, pre, kbd, .font-mono {
+    font-family: var(--font-mono);
+  }
+}
+
+/* Tactile Glassmorphism Surface Tiers */
+.obsidian-card {
+  background-color: rgba(17, 24, 39, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(51, 65, 85, 0.4);
+}
+
+.obsidian-card-interactive {
+  background-color: rgba(17, 24, 39, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(51, 65, 85, 0.4);
+  transition: border-color 160ms cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 160ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.obsidian-card-interactive:hover {
+  background-color: rgba(24, 31, 48, 0.92);
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+.obsidian-sheet {
+  background-color: rgba(30, 41, 59, 0.92);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08), 0 4px 24px rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(51, 65, 85, 0.55);
+}
+
+/* Chromatic Light Flares & Glows */
+.glow-critical {
+  box-shadow: 0 0 16px -2px rgba(239, 68, 68, 0.35);
+}
+
+.glow-scanner {
+  box-shadow: 0 0 20px -4px rgba(56, 189, 248, 0.4);
+}
+
+.glow-surface-lift {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+}
+
+.terminal-input:focus-within {
+  border-color: #38bdf8;
+  box-shadow: inset 0 0 12px -4px rgba(56, 189, 248, 0.25), 0 0 0 1px rgba(56, 189, 248, 0.25);
+}
+
+/* Subtle engineering background grid on canvas */
+.obsidian-canvas-grid {
+  background-image:
+    radial-gradient(circle at 18% 0%, rgba(56, 189, 248, 0.06) 0%, transparent 45%),
+    radial-gradient(circle at 85% 12%, rgba(99, 102, 241, 0.06) 0%, transparent 40%),
+    linear-gradient(to right, rgba(30, 41, 59, 0.18) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(30, 41, 59, 0.18) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+}
+
+/* Refined Dark Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #090d16;
+}
+::-webkit-scrollbar-thumb {
+  background: #262a34;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3e484f;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
