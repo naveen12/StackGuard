@@ -499,7 +499,7 @@ export const INITIAL_VULNERABILITIES: Vulnerability[] = [
     cveId: 'CVE-2023-45857',
     packageName: 'axios',
     installedVersion: '1.6.8',
-    fixedVersion: '1.6.0',
+    fixedVersion: '1.6.8',
     severity: 'safe',
     cvssScore: 0.0,
     cvssVector: 'REMEDIATED · HASH VERIFIED',

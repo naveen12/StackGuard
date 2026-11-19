@@ -333,6 +333,19 @@ function mapOsvSeverity(osvVuln: Record<string, unknown>): { severity: Severity;
   return { severity: 'high', score: 7.5 };
 }
 
+function safeReplaceVersion(rawLine: string | undefined, dep: ParsedDependency, newVersion: string): string {
+  if (!rawLine) return `${dep.name}@${newVersion}`;
+  if (dep.version && dep.version !== 'latest' && rawLine.includes(dep.version)) {
+    const escaped = dep.version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const versionRegex = new RegExp(`(?<=[:"=v@~^<>\\s]|^)${escaped}(?=["'\\s,]|$|\\r|\\n)`);
+    if (versionRegex.test(rawLine)) {
+      return rawLine.replace(versionRegex, newVersion);
+    }
+    return rawLine.replace(dep.version, newVersion);
+  }
+  return rawLine;
+}
+
 export interface StackScanOutput {
   target: ScanTarget;
   vulnerabilities: Vulnerability[];
@@ -403,24 +416,30 @@ export async function scanTechStack(params: {
             const firstVuln = entry.vulns?.[0];
             if (!firstVuln || !dep) return;
 
+            const localMatch = LOCAL_CVE_CATALOG.find(
+              (r) => r.pkg.toLowerCase() === dep.name.toLowerCase()
+            );
+            const isLocalMatchVulnerable =
+              Boolean(localMatch) &&
+              (dep.version === 'latest' ||
+                !localMatch?.maxVulnerableVersion ||
+                compareSemver(dep.version, localMatch.maxVulnerableVersion) <= 0);
+
             const idStr = String(firstVuln.id ?? 'OSV-UNKNOWN');
             const aliases = Array.isArray(firstVuln.aliases)
               ? (firstVuln.aliases as string[])
               : [];
-            const cveId = aliases.find((a) => a.startsWith('CVE-')) ?? idStr;
+            const cveId = (isLocalMatchVulnerable && localMatch?.cveId)
+              ? localMatch.cveId
+              : aliases.find((a) => a.startsWith('CVE-')) ?? idStr;
             const key = `${dep.name}@${dep.version}:${cveId}`;
             if (seenKeys.has(key)) return;
             seenKeys.add(key);
-
-            // Check if local catalog has richer metadata for this package/CVE
-            const localMatch = LOCAL_CVE_CATALOG.find(
-              (r) => r.pkg.toLowerCase() === dep.name.toLowerCase()
-            );
             const mapped = mapOsvSeverity(firstVuln);
-            const fixedVersion = localMatch?.fixedVersion ?? null;
+            const fixedVersion = isLocalMatchVulnerable ? localMatch?.fixedVersion ?? null : null;
 
             discovered.push({
-              id: `vuln-osv-${Date.now()}-${idx}`,
+              id: `vuln-osv-${Date.now()}-${Math.random().toString(36).substring(2, 7)}-${idx}`,
               cveId,
               packageName: dep.name,
               installedVersion: dep.version,
@@ -458,10 +477,7 @@ export async function scanTechStack(params: {
                 filePath,
                 command: buildRemediationCommand(dep, fixedVersion ?? 'latest'),
                 removedLine: dep.rawLine ?? `${dep.name}@${dep.version}`,
-                addedLine: (dep.rawLine ?? `${dep.name}@${dep.version}`).replace(
-                  dep.version,
-                  fixedVersion ?? 'latest'
-                ),
+                addedLine: safeReplaceVersion(dep.rawLine, dep, fixedVersion ?? 'latest'),
                 notes: 'Detected via live OSV.dev batch vulnerability intelligence.',
               },
               exploitPayload: {
@@ -495,14 +511,11 @@ export async function scanTechStack(params: {
     if (!isVulnerable) return;
 
     const key = `${dep.name}@${dep.version}:${rule.cveId}`;
-    const alreadyHasPkg = Array.from(seenKeys).some((k) =>
-      k.startsWith(`${dep.name}@${dep.version}:`)
-    );
-    if (seenKeys.has(key) || alreadyHasPkg) return;
+    if (seenKeys.has(key)) return;
     seenKeys.add(key);
 
     discovered.push({
-      id: `vuln-local-${Date.now()}-${idx}`,
+      id: `vuln-local-${Date.now()}-${Math.random().toString(36).substring(2, 7)}-${idx}`,
       cveId: rule.cveId,
       packageName: dep.name,
       installedVersion: dep.version,
@@ -534,10 +547,7 @@ export async function scanTechStack(params: {
         filePath,
         command: buildRemediationCommand(dep, rule.fixedVersion),
         removedLine: dep.rawLine ?? `${dep.name}@${dep.version}`,
-        addedLine: (dep.rawLine ?? `${dep.name}@${dep.version}`).replace(
-          dep.version,
-          rule.fixedVersion
-        ),
+        addedLine: safeReplaceVersion(dep.rawLine, dep, rule.fixedVersion),
         notes: `Upgrade ${dep.name} to ${rule.fixedVersion} to remediate ${rule.cveId}.`,
       },
       exploitPayload: {

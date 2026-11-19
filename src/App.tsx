@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Activity,
   Box,
@@ -55,7 +55,7 @@ export default function App() {
   );
 
   const showToast = useCallback((message: string, tone: 'cyan' | 'green' | 'red' = 'cyan') => {
-    const id = Date.now();
+    const id = Date.now() + Math.random();
     setToast({ id, message, tone });
     setTimeout(() => {
       setToast((prev) => (prev?.id === id ? null : prev));
@@ -94,6 +94,14 @@ export default function App() {
     [vulnerabilities]
   );
 
+  const scanTimersRef = useRef<Array<ReturnType<typeof setTimeout>>>([]);
+
+  useEffect(() => {
+    return () => {
+      scanTimersRef.current.forEach(clearTimeout);
+    };
+  }, []);
+
   const handleRunScan = useCallback(() => {
     if (isScanning) return;
     setIsScanning(true);
@@ -101,6 +109,9 @@ export default function App() {
     setTargets((prev) =>
       prev.map((t) => (t.status === 'revoked' ? t : { ...t, status: 'scanning' }))
     );
+
+    scanTimersRef.current.forEach(clearTimeout);
+    scanTimersRef.current = [];
 
     const step1 = setTimeout(() => setScanProgress(48), 450);
     const step2 = setTimeout(() => setScanProgress(82), 950);
@@ -117,11 +128,7 @@ export default function App() {
       showToast(`Full SBOM & container scan completed on ${selectedBranch}.`, 'cyan');
     }, 1450);
 
-    return () => {
-      clearTimeout(step1);
-      clearTimeout(step2);
-      clearTimeout(step3);
-    };
+    scanTimersRef.current.push(step1, step2, step3);
   }, [isScanning, selectedBranch, showToast]);
 
   const handlePatchVuln = useCallback(

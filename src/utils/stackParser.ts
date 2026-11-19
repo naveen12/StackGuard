@@ -123,6 +123,7 @@ export function parseTechStack(
         parsed.dependencies,
         parsed.devDependencies,
         parsed.peerDependencies,
+        parsed.optionalDependencies,
       ];
       for (const sec of sections) {
         if (sec && typeof sec === 'object') {
@@ -166,15 +167,16 @@ export function parseTechStack(
     suggestedFilePath = fileName || 'requirements.txt';
     const lines = content.split(/\r?\n/);
     for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith('#') || trimmed.startsWith('-')) continue;
-      const match = trimmed.match(/^([a-zA-Z0-9_.-]+)\s*(?:==|>=|<=|~=|!=)?\s*([0-9a-zA-Z.*+-]+)?/);
+      const strippedComment = line.replace(/#.*$/, '').trim();
+      if (!strippedComment || strippedComment.startsWith('#') || strippedComment.startsWith('-')) continue;
+      const match = strippedComment.match(/^([a-zA-Z0-9_.[\]-]+)\s*(?:==|>=|<=|~=|!=)?\s*([0-9a-zA-Z.*+-]+)?/);
       if (match) {
+        const pkgName = match[1].replace(/\[.*\]$/, '').toLowerCase();
         dependencies.push({
-          name: match[1].toLowerCase(),
+          name: pkgName,
           version: cleanVersion(match[2] ?? 'latest'),
           ecosystem: 'PyPI',
-          rawLine: trimmed,
+          rawLine: line.trim(),
         });
       }
     }
