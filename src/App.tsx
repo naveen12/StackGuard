@@ -9,6 +9,7 @@ import {
   Radar,
   Shield,
   ShieldAlert,
+  Type,
   Upload,
   Wrench,
 } from 'lucide-react';
@@ -38,9 +39,23 @@ const SCREEN_META: Record<ScreenId, { label: string; shortLabel: string }> = {
   remediation: { label: 'Remediation Queue', shortLabel: 'Patch' },
 };
 
+export type FontScale = 'normal' | 'large' | 'xlarge';
+
 export default function App() {
   const [activeScreen, setActiveScreen] = useState<ScreenId>('overview');
   const [selectedBranch, setSelectedBranch] = useState<string>(BRANCHES[0]);
+  const [fontScale, setFontScale] = useState<FontScale>(() => {
+    const saved = localStorage.getItem('stackguard_font_scale');
+    if (saved === 'large' || saved === 'xlarge' || saved === 'normal') return saved;
+    return 'normal';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('stackguard_font_scale', fontScale);
+    const root = document.documentElement;
+    root.style.fontSize = fontScale === 'xlarge' ? '125%' : fontScale === 'large' ? '112.5%' : '100%';
+  }, [fontScale]);
+
   const [vulnerabilities, setVulnerabilities] = useState<Vulnerability[]>(INITIAL_VULNERABILITIES);
   const [targets, setTargets] = useState<ScanTarget[]>(INITIAL_TARGETS);
   const [trend, setTrend] = useState(TELEMETRY_TREND);
@@ -501,8 +516,58 @@ export default function App() {
             </kbd>
           </button>
 
-          {/* Right: Branch Select + Primary Scan Action */}
+          {/* Right: Font Size + Branch Select + Primary Scan Action */}
           <div className="flex items-center gap-2.5 shrink-0">
+            {/* Font Scale Controller */}
+            <div className="inline-flex items-center gap-1 rounded border border-[#1E293B] bg-[#111827]/80 p-1" title="Adjust Interface Font Size">
+              <Type className="h-3.5 w-3.5 text-[#38BDF8] ml-1 mr-0.5 shrink-0" />
+              <button
+                type="button"
+                onClick={() => {
+                  setFontScale('normal');
+                  showToast('Font size reset to 100% (Normal)', 'cyan');
+                }}
+                className={`px-1.5 py-0.5 font-mono text-[10px] font-semibold rounded transition-colors cursor-pointer ${
+                  fontScale === 'normal'
+                    ? 'bg-[#38BDF8]/25 text-[#8ED5FF] border border-[#38BDF8]/50'
+                    : 'text-[#87929A] hover:text-[#DFE2EF]'
+                }`}
+                title="Default Font Size (100%)"
+              >
+                100%
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setFontScale('large');
+                  showToast('Font size scaled to 112% (Large)', 'cyan');
+                }}
+                className={`px-1.5 py-0.5 font-mono text-[10px] font-semibold rounded transition-colors cursor-pointer ${
+                  fontScale === 'large'
+                    ? 'bg-[#38BDF8]/25 text-[#8ED5FF] border border-[#38BDF8]/50'
+                    : 'text-[#87929A] hover:text-[#DFE2EF]'
+                }`}
+                title="Large Font Size (112%)"
+              >
+                112%
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setFontScale('xlarge');
+                  showToast('Font size scaled to 125% (Extra Large)', 'cyan');
+                }}
+                className={`px-1.5 py-0.5 font-mono text-[10px] font-semibold rounded transition-colors cursor-pointer ${
+                  fontScale === 'xlarge'
+                    ? 'bg-[#38BDF8]/25 text-[#8ED5FF] border border-[#38BDF8]/50'
+                    : 'text-[#87929A] hover:text-[#DFE2EF]'
+                }`}
+                title="Extra Large Font Size (125%)"
+              >
+                125%
+              </button>
+            </div>
+
             <div className="hidden sm:inline-flex items-center gap-1.5 rounded border border-[#1E293B] bg-[#111827]/80 px-2.5 py-1.5">
               <GitBranch className="h-3.5 w-3.5 text-[#6366F1] shrink-0" />
               <select
