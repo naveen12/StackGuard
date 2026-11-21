@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { ArrowUpRight, CheckCircle2, Flame, FolderGit2, GitCommitHorizontal, ShieldCheck } from 'lucide-react';
 import { Vulnerability } from '../types/security';
 import { SEVERITY_STYLES, SeverityBadge } from './SeverityBadge';
@@ -9,7 +10,7 @@ interface CveCardProps {
   onQuickPatch?: (vulnId: string) => void;
 }
 
-export function CveCard({ vuln, selected = false, onSelect, onQuickPatch }: CveCardProps) {
+export const CveCard = memo(function CveCard({ vuln, selected = false, onSelect, onQuickPatch }: CveCardProps) {
   const effectiveSeverity = vuln.status === 'patched' ? 'safe' : vuln.severity;
   const style = SEVERITY_STYLES[effectiveSeverity];
   const isCriticalOpen = effectiveSeverity === 'critical' && vuln.status === 'open';
@@ -137,4 +138,4 @@ export function CveCard({ vuln, selected = false, onSelect, onQuickPatch }: CveC
       </div>
     </article>
   );
-}
+});

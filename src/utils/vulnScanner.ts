@@ -392,6 +392,37 @@ function safeReplaceVersion(rawLine: string | undefined, dep: ParsedDependency, 
   return rawLine;
 }
 
+interface OsvCacheItem {
+  timestamp: number;
+  results: Array<{ vulns?: Array<Record<string, unknown>> }>;
+}
+
+const OSV_CACHE_KEY_PREFIX = 'stackguard_osv_cache_v1_';
+const OSV_CACHE_TTL_MS = 4 * 60 * 60 * 1000; // 4 Hours TTL
+
+function getOsvCache(key: string): Array<{ vulns?: Array<Record<string, unknown>> }> | null {
+  try {
+    const raw = localStorage.getItem(OSV_CACHE_KEY_PREFIX + key);
+    if (!raw) return null;
+    const parsed: OsvCacheItem = JSON.parse(raw);
+    if (Date.now() - parsed.timestamp < OSV_CACHE_TTL_MS) {
+      return parsed.results;
+    }
+  } catch {
+    // Ignore storage errors
+  }
+  return null;
+}
+
+function setOsvCache(key: string, results: Array<{ vulns?: Array<Record<string, unknown>> }>): void {
+  try {
+    const item: OsvCacheItem = { timestamp: Date.now(), results };
+    localStorage.setItem(OSV_CACHE_KEY_PREFIX + key, JSON.stringify(item));
+  } catch {
+    // Ignore storage quota limits
+  }
+}
+
 export interface StackScanOutput {
   target: ScanTarget;
   vulnerabilities: Vulnerability[];
@@ -436,28 +467,39 @@ export async function scanTechStack(params: {
 
   if (queryable.length > 0) {
     try {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 3500);
-      const res = await fetch('https://api.osv.dev/v1/querybatch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
-        body: JSON.stringify({
-          queries: queryable.map((d) => ({
-            package: { name: d.name, ecosystem: d.ecosystem },
-            version: d.version,
-          })),
-        }),
-      });
-      clearTimeout(timer);
+      const cacheKey = queryable.map((d) => `${d.ecosystem}:${d.name}@${d.version}`).join('|');
+      let batchResults = getOsvCache(cacheKey);
 
-      if (res.ok) {
-        const data = (await res.json()) as {
-          results?: Array<{ vulns?: Array<Record<string, unknown>> }>;
-        };
-        if (Array.isArray(data.results)) {
-          liveOsvUsed = true;
-          data.results.forEach((entry, idx) => {
+      if (!batchResults) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 3500);
+        const res = await fetch('https://api.osv.dev/v1/querybatch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            queries: queryable.map((d) => ({
+              package: { name: d.name, ecosystem: d.ecosystem },
+              version: d.version,
+            })),
+          }),
+        });
+        clearTimeout(timer);
+
+        if (res.ok) {
+          const data = (await res.json()) as {
+            results?: Array<{ vulns?: Array<Record<string, unknown>> }>;
+          };
+          if (Array.isArray(data.results)) {
+            batchResults = data.results;
+            setOsvCache(cacheKey, data.results);
+          }
+        }
+      }
+
+      if (batchResults && Array.isArray(batchResults)) {
+        liveOsvUsed = true;
+        batchResults.forEach((entry, idx) => {
             const dep = queryable[idx];
             const firstVuln = entry.vulns?.[0];
             if (!firstVuln || !dep) return;
@@ -537,7 +579,6 @@ export async function scanTechStack(params: {
             });
           });
         }
-      }
     } catch {
       // Fall back smoothly to local deterministic CVE rules
     }

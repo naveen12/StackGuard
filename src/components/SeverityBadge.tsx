@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Severity } from '../types/security';
 
 interface SeverityStyle {
@@ -64,7 +65,7 @@ interface SeverityBadgeProps {
   compact?: boolean;
 }
 
-export function SeverityBadge({ severity, cvssScore, compact = false }: SeverityBadgeProps) {
+export const SeverityBadge = memo(function SeverityBadge({ severity, cvssScore, compact = false }: SeverityBadgeProps) {
   const style = SEVERITY_STYLES[severity];
 
   return (
@@ -78,4 +79,4 @@ export function SeverityBadge({ severity, cvssScore, compact = false }: Severity
       <span>{compact ? style.code : style.label}</span>
     </span>
   );
-}
+});
