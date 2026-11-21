@@ -5,6 +5,7 @@ import {
   ChevronRight,
   Code2,
   Copy,
+  FolderGit2,
   GitBranch,
   Layers,
   ShieldAlert,
@@ -94,11 +95,16 @@ export function DrilldownSheet({ vuln, onClose, onPatch, onRevoke }: DrilldownSh
                   {vuln.title}
                 </h2>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] text-[#94A3B8]">
+                  <span className="inline-flex items-center gap-1 text-[#8ED5FF] font-semibold">
+                    <FolderGit2 className="h-3.5 w-3.5 text-[#38BDF8]" />
+                    {vuln.repositoryPath || vuln.remediation.filePath || vuln.targetName}
+                  </span>
+                  <span>·</span>
                   <span>{vuln.cvssVector}</span>
                   <span>·</span>
                   <span className="tabular-nums">EPSS {vuln.epssScore.toFixed(1)}%</span>
                   <span>·</span>
-                  <span className="truncate max-w-[260px]">{vuln.digest}</span>
+                  <span className="truncate max-w-[200px]">{vuln.digest}</span>
                 </div>
               </div>
 

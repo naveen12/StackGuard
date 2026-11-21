@@ -1,4 +1,4 @@
-import { ArrowUpRight, CheckCircle2, Flame, GitCommitHorizontal, ShieldCheck } from 'lucide-react';
+import { ArrowUpRight, CheckCircle2, Flame, FolderGit2, GitCommitHorizontal, ShieldCheck } from 'lucide-react';
 import { Vulnerability } from '../types/security';
 import { SEVERITY_STYLES, SeverityBadge } from './SeverityBadge';
 
@@ -13,6 +13,7 @@ export function CveCard({ vuln, selected = false, onSelect, onQuickPatch }: CveC
   const effectiveSeverity = vuln.status === 'patched' ? 'safe' : vuln.severity;
   const style = SEVERITY_STYLES[effectiveSeverity];
   const isCriticalOpen = effectiveSeverity === 'critical' && vuln.status === 'open';
+  const repoPathDisplay = vuln.repositoryPath || vuln.remediation.filePath || vuln.targetName;
 
   return (
     <article
@@ -56,17 +57,23 @@ export function CveCard({ vuln, selected = false, onSelect, onQuickPatch }: CveC
           <SeverityBadge severity={effectiveSeverity} cvssScore={vuln.cvssScore} />
         </div>
 
-        {/* 2. Core Body: Single-line CVE ID in Cyan + clamped 2-line advisory in muted Inter */}
+        {/* 2. Core Body: Single-line CVE ID in Cyan + Repository Path Tag */}
         <div className="flex flex-col gap-1">
-          <div className="flex items-center justify-between gap-2">
-            <span className="font-mono text-[12px] font-semibold tracking-[0.04em] text-[#38BDF8]">
-              {vuln.cveId}
-            </span>
-            <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-[#87929A] tabular-nums">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="font-mono text-[12px] font-semibold tracking-[0.04em] text-[#38BDF8]">
+                {vuln.cveId}
+              </span>
+              <span className="inline-flex items-center gap-1 rounded border border-[#334155]/60 bg-[#090D16] px-2 py-0.5 font-mono text-[10px] text-[#8ED5FF] truncate max-w-[220px]" title={`Repository Path: ${repoPathDisplay}`}>
+                <FolderGit2 className="h-3 w-3 text-[#38BDF8] shrink-0" />
+                <span className="truncate">{repoPathDisplay}</span>
+              </span>
+            </div>
+            <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-[#87929A] tabular-nums shrink-0">
               {vuln.branch} · {vuln.detectedAt}
             </span>
           </div>
-          <p className="text-[13px] leading-[19px] text-[#94A3B8] line-clamp-2">
+          <p className="text-[13px] leading-[19px] text-[#94A3B8] line-clamp-2 mt-0.5">
             {vuln.advisory}
           </p>
         </div>

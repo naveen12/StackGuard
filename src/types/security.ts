@@ -36,6 +36,7 @@ export interface Vulnerability {
   advisory: string;
   targetId: string;
   targetName: string;
+  repositoryPath?: string; // e.g. "apps/console-web" or "services/payments-api"
   targetCategory: TargetCategory;
   branch: string;
   detectedAt: string;

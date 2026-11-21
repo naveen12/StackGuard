@@ -3,6 +3,7 @@ import {
   ArrowRight,
   Container,
   FileCode2,
+  FolderGit2,
   Lock,
   ShieldAlert,
   ShieldCheck,
@@ -66,6 +67,21 @@ export function TelemetryOverview({
 
   const containerTargets = targets.filter((t) => t.category === 'container');
   const lockfileTargets = targets.filter((t) => t.category !== 'container');
+
+  const repoBreakdown = useMemo(() => {
+    const map = new Map<string, { total: number; critical: number; open: number }>();
+    vulnerabilities.forEach((v) => {
+      const repo = v.repositoryPath || v.remediation.filePath || v.targetName;
+      const current = map.get(repo) || { total: 0, critical: 0, open: 0 };
+      current.total += 1;
+      if (v.status === 'open') {
+        current.open += 1;
+        if (v.severity === 'critical') current.critical += 1;
+      }
+      map.set(repo, current);
+    });
+    return Array.from(map.entries()).sort((a, b) => b[1].open - a[1].open);
+  }, [vulnerabilities]);
 
   // SVG Chart Geometry
   const chartW = 540;
@@ -455,6 +471,67 @@ export function TelemetryOverview({
               })}
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Section 2.5: Repository Vulnerability Tracking Matrix */}
+      <section aria-label="Repository exposure tracking" className="space-y-3">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="font-display text-[18px] font-semibold tracking-[-0.015em] text-[#DFE2EF]">
+              Repository Exposure Tracking
+            </h2>
+            <p className="text-[13px] text-[#94A3B8] mt-0.5">
+              Active CVE count breakdown per repository path to enable multi-repo scaling.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => onNavigate('advisories')}
+            className="font-mono text-[11px] uppercase tracking-[0.06em] text-[#38BDF8] hover:text-[#8ED5FF] transition-colors cursor-pointer"
+          >
+            View Repo-Wise Advisories ›
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {repoBreakdown.map(([repoPath, stats]) => (
+            <div
+              key={repoPath}
+              onClick={() => onNavigate('advisories')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && onNavigate('advisories')}
+              className="obsidian-card rounded-lg p-4 flex items-center justify-between gap-3 hover:border-[#38BDF8]/50 transition-colors cursor-pointer"
+            >
+              <div className="min-w-0 space-y-1">
+                <div className="flex items-center gap-2">
+                  <FolderGit2 className="h-4 w-4 text-[#38BDF8] shrink-0" />
+                  <span className="font-mono text-[13px] font-semibold text-[#DFE2EF] truncate">
+                    {repoPath}
+                  </span>
+                </div>
+                <div className="font-mono text-[11px] text-[#87929A] tabular-nums">
+                  {stats.total} total indexed CVE{stats.total === 1 ? '' : 's'}
+                </div>
+              </div>
+
+              <div className="flex flex-col items-end shrink-0 font-mono text-[11px] tabular-nums">
+                <span
+                  className={`font-semibold ${
+                    stats.open > 0 ? 'text-[#F87171]' : 'text-[#34D399]'
+                  }`}
+                >
+                  {stats.open > 0 ? `${stats.open} open` : 'Clean'}
+                </span>
+                {stats.critical > 0 && (
+                  <span className="text-[10px] text-[#EF4444] font-semibold uppercase tracking-[0.06em]">
+                    {stats.critical} Critical
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
