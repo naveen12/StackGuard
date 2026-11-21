@@ -91,3 +91,37 @@ test('scanTechStack safely builds remediation lines without corrupted partial st
   assert.equal(expressVuln?.remediation.removedLine, '    "express": "4.18.2",');
   assert.equal(expressVuln?.remediation.addedLine, '    "express": "4.19.2",');
 });
+
+test('scanTechStack detects Java Spring4Shell and Log4Shell in pom.xml files', async () => {
+  const parsed = parseTechStack(
+    `<project>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.logging.log4j</groupId>
+          <artifactId>log4j-core</artifactId>
+          <version>2.14.1</version>
+        </dependency>
+        <dependency>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-web</artifactId>
+          <version>5.3.17</version>
+        </dependency>
+      </dependencies>
+    </project>`,
+    'pom.xml',
+    'services/billing/pom.xml'
+  );
+
+  const output = await scanTechStack({
+    targetName: 'billing-service/pom.xml',
+    filePath: 'services/billing/pom.xml',
+    category: 'java-maven',
+    branch: 'main',
+    rawContent: 'java-content',
+    dependencies: parsed.dependencies,
+  });
+
+  const cveIds = output.vulnerabilities.map((v) => v.cveId);
+  assert.ok(cveIds.includes('CVE-2021-44228')); // Log4Shell
+  assert.ok(cveIds.includes('CVE-2022-22965')); // Spring4Shell
+});

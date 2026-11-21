@@ -42,6 +42,7 @@ const ECOSYSTEM_OPTIONS: {
   { id: 'npm', label: 'Node.js / npm', category: 'node-lockfile', placeholder: 'e.g. express' },
   { id: 'PyPI', label: 'Python / PyPI', category: 'python-wheel', placeholder: 'e.g. django' },
   { id: 'Go', label: 'Go Module', category: 'go-module', placeholder: 'e.g. golang.org/x/net' },
+  { id: 'Maven', label: 'Java / Maven', category: 'java-maven', placeholder: 'e.g. log4j-core or org.springframework:spring-web' },
   { id: 'Alpine', label: 'Docker / Alpine', category: 'container', placeholder: 'e.g. openssl' },
 ];
 

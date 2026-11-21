@@ -1,6 +1,6 @@
 export type Severity = 'critical' | 'high' | 'moderate' | 'low' | 'safe';
 
-export type TargetCategory = 'container' | 'node-lockfile' | 'go-module' | 'python-wheel';
+export type TargetCategory = 'container' | 'node-lockfile' | 'go-module' | 'python-wheel' | 'java-maven';
 
 export type RemediationStatus = 'open' | 'patched' | 'revoked' | 'ignored';
 

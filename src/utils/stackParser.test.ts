@@ -100,6 +100,23 @@ test('parseTechStack parses Dockerfiles for base image and packages', () => {
   assert.equal(runcDep?.ecosystem, 'Alpine');
 });
 
+test('parseTechStack parses Java Maven pom.xml and Gradle build.gradle files', () => {
+  const pomResult = parseTechStack(SAMPLE_MANIFESTS['pom.xml'].content, 'pom.xml', 'services/billing/pom.xml');
+  assert.equal(pomResult.kind, 'pom.xml');
+  assert.equal(pomResult.category, 'java-maven');
+  assert.ok(pomResult.dependencies.length >= 3);
+
+  const log4jDep = pomResult.dependencies.find((d) => d.name === 'log4j-core');
+  assert.ok(log4jDep);
+  assert.equal(log4jDep?.version, '2.14.1');
+  assert.equal(log4jDep?.ecosystem, 'Maven');
+
+  const gradleResult = parseTechStack(SAMPLE_MANIFESTS['build.gradle'].content, 'build.gradle', 'services/auth/build.gradle');
+  assert.equal(gradleResult.kind, 'build.gradle');
+  assert.equal(gradleResult.category, 'java-maven');
+  assert.ok(gradleResult.dependencies.length >= 3);
+});
+
 test('computeSha256Hex generates consistent deterministic SHA-256 hash', async () => {
   const hash1 = await computeSha256Hex('stackguard-test-input');
   const hash2 = await computeSha256Hex('stackguard-test-input');

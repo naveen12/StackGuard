@@ -302,6 +302,51 @@ const LOCAL_CVE_CATALOG: LocalVulnRule[] = [
       'Alpine 3.18 base layers include legacy libxml2 and musl packages with known memory safety advisories fixed in 3.19.1.',
     cwe: ['CWE-416'],
   },
+  {
+    pkg: 'log4j-core',
+    cveId: 'CVE-2021-44228',
+    maxVulnerableVersion: '2.14.1',
+    fixedVersion: '2.17.1',
+    severity: 'critical',
+    cvssScore: 10.0,
+    cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H',
+    epssScore: 97.5,
+    isKev: true,
+    title: 'Log4Shell remote code execution via JNDI lookup expansion',
+    advisory:
+      'Apache Log4j2 JNDI features used in configuration, log messages, and parameters do not protect against attacker-controlled LDAP and other JNDI endpoints.',
+    cwe: ['CWE-502', 'CWE-400'],
+  },
+  {
+    pkg: 'spring-web',
+    cveId: 'CVE-2022-22965',
+    maxVulnerableVersion: '5.3.17',
+    fixedVersion: '5.3.18',
+    severity: 'critical',
+    cvssScore: 9.8,
+    cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H',
+    epssScore: 95.8,
+    isKev: true,
+    title: 'Spring4Shell RCE via Data Binder classloader property override',
+    advisory:
+      'A Spring MVC or Spring WebFlux application running on JDK 9+ may be vulnerable to remote code execution via data binding classloader property overrides.',
+    cwe: ['CWE-94'],
+  },
+  {
+    pkg: 'jackson-databind',
+    cveId: 'CVE-2020-36518',
+    maxVulnerableVersion: '2.13.2',
+    fixedVersion: '2.13.2.1',
+    severity: 'high',
+    cvssScore: 7.5,
+    cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H',
+    epssScore: 68.2,
+    isKev: false,
+    title: 'Deeply nested JSON structure stack overflow DoS',
+    advisory:
+      'FasterXML jackson-databind allows unauthenticated remote attackers to cause a denial of service (stack overflow) via deeply nested JSON input.',
+    cwe: ['CWE-674'],
+  },
 ];
 
 function compareSemver(a: string, b: string): number {
@@ -320,6 +365,7 @@ function buildRemediationCommand(dep: ParsedDependency, fixedVersion: string): s
   if (dep.ecosystem === 'npm') return `npm install ${dep.name}@${fixedVersion} --save-exact`;
   if (dep.ecosystem === 'PyPI') return `pip install --upgrade ${dep.name}==${fixedVersion}`;
   if (dep.ecosystem === 'Go') return `go get ${dep.name}@v${fixedVersion.replace(/^v/, '')} && go mod tidy`;
+  if (dep.ecosystem === 'Maven') return `./mvnw versions:use-dep-version -Dincludes=${dep.name} -DdepVersion=${fixedVersion}`;
   return `apk upgrade --no-cache ${dep.name}=${fixedVersion}`;
 }
 

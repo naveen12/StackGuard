@@ -3,11 +3,18 @@ import { TargetCategory } from '../types/security';
 export interface ParsedDependency {
   name: string;
   version: string;
-  ecosystem: 'npm' | 'PyPI' | 'Go' | 'Alpine';
+  ecosystem: 'npm' | 'PyPI' | 'Go' | 'Alpine' | 'Maven';
   rawLine?: string;
 }
 
-export type ManifestKind = 'package.json' | 'requirements.txt' | 'go.mod' | 'Dockerfile' | 'manual';
+export type ManifestKind =
+  | 'package.json'
+  | 'requirements.txt'
+  | 'go.mod'
+  | 'Dockerfile'
+  | 'pom.xml'
+  | 'build.gradle'
+  | 'manual';
 
 export interface ParsedStackResult {
   kind: ManifestKind;
@@ -76,6 +83,48 @@ WORKDIR /app
 COPY . .
 CMD ["./server"]`,
   },
+  'pom.xml': {
+    label: 'Java Maven (pom.xml)',
+    targetName: 'billing-service/pom.xml',
+    filePath: 'services/billing-service/pom.xml',
+    content: `<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <groupId>com.acme</groupId>
+  <artifactId>billing-service</artifactId>
+  <version>2.4.0</version>
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-web</artifactId>
+      <version>5.3.17</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>2.14.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.13.0</version>
+    </dependency>
+  </dependencies>
+</project>`,
+  },
+  'build.gradle': {
+    label: 'Java / Kotlin Gradle (build.gradle)',
+    targetName: 'auth-server/build.gradle',
+    filePath: 'services/auth-server/build.gradle',
+    content: `plugins {
+    id 'org.springframework.boot' version '2.7.0'
+    id 'java'
+}
+
+dependencies {
+    implementation 'org.springframework:spring-web:5.3.17'
+    implementation 'org.apache.logging.log4j:log4j-core:2.14.1'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.0'
+}`,
+  },
 };
 
 function cleanVersion(raw: string): string {
@@ -92,9 +141,13 @@ export function detectManifestKind(content: string, fileName?: string): Manifest
   if (lowerName.includes('requirements') || lowerName.endsWith('.txt')) return 'requirements.txt';
   if (lowerName.endsWith('go.mod') || lowerName.endsWith('go.sum')) return 'go.mod';
   if (lowerName.includes('dockerfile')) return 'Dockerfile';
+  if (lowerName.endsWith('pom.xml')) return 'pom.xml';
+  if (lowerName.endsWith('.gradle') || lowerName.endsWith('.gradle.kts')) return 'build.gradle';
 
   const trimmed = content.trim();
   if (trimmed.startsWith('{')) return 'package.json';
+  if (trimmed.startsWith('<project') || (trimmed.includes('<dependencies>') && trimmed.includes('<dependency>'))) return 'pom.xml';
+  if (trimmed.includes('dependencies {') || /implementation|api|compile/i.test(trimmed)) return 'build.gradle';
   if (/^FROM\s+/im.test(trimmed)) return 'Dockerfile';
   if (/^module\s+/im.test(trimmed) || /require\s*\(/im.test(trimmed)) return 'go.mod';
   if (/==|>=|~=/.test(trimmed)) return 'requirements.txt';
@@ -255,6 +308,74 @@ export function parseTechStack(
     return {
       kind,
       category: 'container',
+      dependencies,
+      suggestedTargetName,
+      suggestedFilePath,
+    };
+  }
+
+  if (kind === 'pom.xml') {
+    suggestedTargetName = fileName || 'java-service/pom.xml';
+    suggestedFilePath = fileName || 'pom.xml';
+    const depRegex = /<dependency>[\s\S]*?<groupId>([^<]+)<\/groupId>[\s\S]*?<artifactId>([^<]+)<\/artifactId>(?:[\s\S]*?<version>([^<]+)<\/version>)?[\s\S]*?<\/dependency>/gi;
+    let m: RegExpExecArray | null;
+    while ((m = depRegex.exec(content)) !== null) {
+      const group = m[1].trim();
+      const artifact = m[2].trim();
+      const ver = m[3]?.trim() ?? 'latest';
+      dependencies.push({
+        name: `${group}:${artifact}`,
+        version: cleanVersion(ver),
+        ecosystem: 'Maven',
+        rawLine: `<dependency><groupId>${group}</groupId><artifactId>${artifact}</artifactId><version>${ver}</version></dependency>`,
+      });
+      if (group !== artifact) {
+        dependencies.push({
+          name: artifact,
+          version: cleanVersion(ver),
+          ecosystem: 'Maven',
+          rawLine: `<artifactId>${artifact}</artifactId>`,
+        });
+      }
+    }
+    return {
+      kind,
+      category: 'java-maven',
+      dependencies,
+      suggestedTargetName,
+      suggestedFilePath,
+    };
+  }
+
+  if (kind === 'build.gradle') {
+    suggestedTargetName = fileName || 'gradle-service/build.gradle';
+    suggestedFilePath = fileName || 'build.gradle';
+    const lines = content.split(/\r?\n/);
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('//')) continue;
+      const gradleMatch = trimmed.match(/(?:implementation|api|compileOnly|runtimeOnly|compile)\s+['"]([^'":]+):([^'":]+):([^'":]+)['"]/);
+      if (gradleMatch) {
+        const group = gradleMatch[1];
+        const artifact = gradleMatch[2];
+        const ver = gradleMatch[3];
+        dependencies.push({
+          name: `${group}:${artifact}`,
+          version: cleanVersion(ver),
+          ecosystem: 'Maven',
+          rawLine: trimmed,
+        });
+        dependencies.push({
+          name: artifact,
+          version: cleanVersion(ver),
+          ecosystem: 'Maven',
+          rawLine: trimmed,
+        });
+      }
+    }
+    return {
+      kind,
+      category: 'java-maven',
       dependencies,
       suggestedTargetName,
       suggestedFilePath,
