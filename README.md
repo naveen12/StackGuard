@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="public/favicon.svg" alt="StackGuard Shield Logo" width="100" height="100" />
+  <img src="public/favicon.svg" alt="StackGuard Shield Logo" width="110" height="110" />
 
   # StackGuard
   ### Tech Stack Vulnerability & Supply-Chain Security Console
@@ -16,64 +16,70 @@
 
 ---
 
-## 📋 Overview
+## 📋 Mission & Capabilities
 
-**StackGuard** is a continuous software supply-chain security console and multi-language dependency scanner. It ingests software manifests (`package.json`, `requirements.txt`, `go.mod`, `pom.xml`, `build.gradle`, and `Dockerfile` container images), evaluates them against live **OSV.dev** vulnerability intelligence and local **CISA KEV (Known Exploited Vulnerabilities)** rules, maps dependency blast-radii across microservices, and generates verified lockfile remediation diffs.
-
----
-
-## ✨ Key Features
-
-- 🛡️ **Multi-Language & Multi-Ecosystem Scanner**:
-  - **Node.js**: `package.json`, `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`
-  - **Python**: `requirements.txt`, `requirements.lock`, `Pipfile`
-  - **Go**: `go.mod`, `go.sum`
-  - **Java & Kotlin**: Maven `pom.xml`, Gradle `build.gradle` / `build.gradle.kts`
-  - **Containers**: `Dockerfile`, Alpine Linux `apk` packages (`runc`, `openssl`, `curl`)
-
-- 📂 **Repository-Wise Vulnerability Tracking**:
-  - Group and filter active CVEs by repository or file path (`apps/console-web`, `services/identity-edge`, `services/billing-service`, `infra/docker`).
-  - Enables seamless multi-repo scaling as engineering repositories increase.
-
-- 📊 **Telemetry Overview & Blast-Radius Graph**:
-  - Interactive 3-column SVG dependency topology tracing transitive hops from entry artifacts to vulnerable leaf packages.
-  - CVSS v3.1 impact scores, EPSS 30-day exploit probabilities, and 14-day remediation velocity charts.
-
-- 🔍 **Command Shell (`Cmd+K` / `Ctrl+K`)**:
-  - Instant query terminal to search CVE IDs, package coordinates, SHA-256 digests, or trigger CLI scan routines.
-
-- 🔋 **Intelligent Local Response Caching**:
-  - Caches live OSV.dev batch lookup responses in IndexedDB/LocalStorage with a 4-hour TTL, cutting network usage by **~85%** and preserving battery life on mobile devices.
-
-- 🔤 **Accessibility Font Size Scaling**:
-  - Built-in `100%`, `112%`, and `125%` font magnification controls with persistent `localStorage` user preference storage.
-
-- 📱 **Cross-Platform Web & Native Android App**:
-  - Progressive Web App (PWA) and native Android APK (`app-debug.apk`) powered by Capacitor 6 with custom adaptive launcher icons.
+**StackGuard** is a continuous software supply-chain security console and multi-language dependency scanner. It ingests software manifests, evaluates them against live **OSV.dev** vulnerability intelligence and local **CISA KEV (Known Exploited Vulnerabilities)** rules, maps dependency blast-radii across microservices, and generates verified lockfile remediation diffs.
 
 ---
 
-## 🛠️ Tech Stack
+## ⚡ Key Application Features
 
-- **Frontend**: React 19, TypeScript 5, Vite 8
-- **Styling**: Tailwind CSS v4, Lucide React icons, Motion (Framer)
-- **Mobile Native**: Capacitor 6 (Android WorkManager & Adaptive Vector Resources)
-- **Vulnerability Intelligence**: Live OSV.dev Batch API + Local CVE Catalog (CISA KEV / EPSS / CVSS v3.1)
-- **Testing**: Node.js Native Test Runner (`tsx --test`)
+### 🌐 1. Multi-Language & Multi-Ecosystem Scanning
+Natively parses and scans dependency manifests across all major programming ecosystems:
+- **Java & Kotlin**: Maven `pom.xml`, Gradle `build.gradle` / `build.gradle.kts` (*Log4Shell, Spring4Shell, Jackson Databind*)
+- **Python**: `requirements.txt`, `requirements.lock`, `Pipfile` (*Django, urllib3, PyYAML, Requests*)
+- **Node.js / JavaScript**: `package.json`, `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock` (*node-tar, express, lodash, runc*)
+- **Go**: `go.mod`, `go.sum` (*HTTP/2 Rapid Reset, gRPC, x/net*)
+- **Docker & Container Images**: `Dockerfile`, Alpine `apk` packages (*OpenSSL, curl, runc*)
 
 ---
 
-## 🚀 Getting Started
+### 📂 2. Repository-Wise Vulnerability Tracking & Scaling
+Designed to scale effortlessly as engineering repositories and microservices grow:
+- **Repo-Wise Grouping View**: Toggle grouped view in Advisories to organize active CVEs by repository or file path (`apps/console-web`, `services/identity-edge`, `services/billing-service`, `infra/docker`).
+- **Repository Filter Dropdown**: Instantly filter vulnerability advisories down to a specific repository or service path.
+- **Repository Exposure Tracking Matrix**: Overview dashboard widget breaking down open CVE counts, critical threat counts, and clean target statuses repo-by-repo.
+- **Visual Repository Badges**: Every CVE card displays an explicit repository badge with path metadata.
 
-### Prerequisites
+---
 
-- **Node.js**: `>= 18.0.0`
-- **npm**: `>= 9.0.0`
+### 📊 3. Interactive Supply-Chain Blast Radius Topology
+- **3-Tier SVG Graph**: Visualizes full transitive supply-chain propagation from **Entry Artifact → Intermediate Hop → Vulnerable Leaf Package**.
+- **CVSS v3.1 & EPSS Scoring**: Integrates CVSS impact vectors alongside EPSS (Exploit Prediction Scoring System) 30-day exploitation probability percentages.
+- **14-Day Remediation Velocity**: Tracks exposure vs. patch attestation trends over time.
+
+---
+
+### 🔍 4. Command Shell (`Cmd+K` / `Ctrl+K`)
+- **Keyboard-Driven Query Shell**: Global terminal modal accessible anywhere with `Cmd+K` or `Ctrl+K`.
+- **Instant Search**: Search by CVE ID (`CVE-2024-21626`), package coordinate (`tar@6.1.11`), SHA-256 digest, or execute quick commands (`feed --stack`, `scan --all`, `export --sbom`).
+
+---
+
+### 🔋 5. Intelligent Local Response Caching (Battery & Bandwidth Optimized)
+- **4-Hour TTL Local Cache**: Caches live OSV.dev batch API lookup responses in IndexedDB/LocalStorage.
+- **85% Network Reduction**: Cuts redundant network requests on re-scans, saves mobile data, and preserves battery life on Android devices by preventing cellular radio wakeups.
+
+---
+
+### 🔤 6. Accessibility Font Size Scaling
+- **Interface Font Scale Controller**: Built-in header controls (`100%`, `112%`, `125%`) allowing users to dynamically enlarge text size across all views, cards, code blocks, and inspector panels.
+- **Persistent Preferences**: Automatically saves user font preferences in `localStorage`.
+
+---
+
+### 📱 7. Native Android APK & Cross-Platform Support
+- **Cross-Platform**: Built as a responsive PWA and native Android app powered by Capacitor 6.
+- **Custom Adaptive Icons**: Features custom cyan StackGuard security shield vector assets (`ic_launcher_foreground.xml` & `ic_launcher_background.xml`).
+
+---
+
+## 🚀 Quick Start Guide
 
 ### Installation
 
 ```bash
-# Clone the repository
+# Clone repository
 git clone https://github.com/naveen12/StackGuard.git
 cd StackGuard
 
@@ -81,123 +87,32 @@ cd StackGuard
 npm install
 ```
 
-### Running Development Server
+### Commands
+
+| Command | Action |
+| :--- | :--- |
+| `npm run dev` | Launch development server at `http://localhost:3000` |
+| `npm test` | Run automated unit test suite (11/11 passing) |
+| `npm run lint` | Run TypeScript type checking (`tsc --noEmit`) |
+| `npm run build` | Build production web bundle to `dist/` |
+| `npx cap sync` | Sync web build output into native Android project |
+
+---
+
+## 📱 Building the Android APK
 
 ```bash
-npm run dev
-```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-### Running Unit Tests
-
-```bash
-npm test
-```
-
-### Type Checking & Linting
-
-```bash
-npm run lint
-```
-
-### Production Web Build
-
-```bash
+# Build web bundle & sync Capacitor
 npm run build
-```
-Compiled production assets will be placed in the `dist/` directory.
+npx cap sync
 
----
-
-## 📱 Building the Native Android APK
-
-StackGuard uses Capacitor to package the React web application into a native Android APK.
-
-1. **Build Web Assets & Sync Capacitor**:
-   ```bash
-   npm run build
-   npx cap sync
-   ```
-
-2. **Assemble Android Debug APK**:
-   ```bash
-   cd android
-   ./gradlew assembleDebug
-   ```
-
-3. **APK Location**:
-   ```text
-   android/app/build/outputs/apk/debug/app-debug.apk
-   ```
-
----
-
-## 📁 Project Structure
-
-```text
-StackGuard/
-├── .github/                  # CI/CD workflows
-├── android/                  # Native Android project (Capacitor)
-│   └── app/src/main/res/     # Adaptive launcher icons & Android resources
-├── public/
-│   └── favicon.svg           # StackGuard vector shield icon
-├── scripts/
-│   ├── generate-icons.js     # Sharp launcher icon generator
-│   └── export-icon-artifact.js
-├── src/
-│   ├── components/           # React UI Views & Component Architecture
-│   │   ├── AdvisoriesView.tsx        # CVE filter & Repo-wise grouping view
-│   │   ├── CommandTerminal.tsx       # Cmd+K query shell
-│   │   ├── CveCard.tsx               # Memoized CVE card component
-│   │   ├── DependencyGraphView.tsx   # Blast-radius SVG topology
-│   │   ├── DrilldownSheet.tsx        # Detailed CVE inspector sheet
-│   │   ├── RemediationView.tsx       # Patch queue & lockfile diff view
-│   │   ├── SeverityBadge.tsx         # Memoized CVSS severity badge
-│   │   ├── StackIntakeView.tsx       # Manifest parser & live scanner
-│   │   ├── TargetsView.tsx           # Target registry & digest verifier
-│   │   └── TelemetryOverview.tsx     # Telemetry matrix & repo tracking
-│   ├── data/
-│   │   └── securityData.ts   # Sample initial vulnerabilities & targets
-│   ├── types/
-│   │   └── security.ts       # TypeScript security & vulnerability types
-│   ├── utils/
-│   │   ├── stackParser.ts    # Multi-language manifest parser
-│   │   ├── stackParser.test.ts # Parser unit tests
-│   │   ├── vulnScanner.ts    # OSV.dev batch query & CVE matcher with cache
-│   │   └── vulnScanner.test.ts # Scanner unit tests
-│   ├── App.tsx               # Main application container & font scaling
-│   ├── index.css             # Glassmorphism & obsidian theme styling
-│   └── main.tsx              # React DOM root entry
-├── capacitor.config.ts       # Capacitor mobile configuration
-├── package.json              # Project scripts and dependencies
-├── tsconfig.json             # TypeScript configuration
-├── vite.config.ts            # Vite configuration with ES module dirname
-└── README.md
+# Build Android Debug APK
+cd android
+./gradlew assembleDebug
 ```
 
----
-
-## 🧪 Testing Coverage
-
-The project includes an automated test suite verifying parser and scanner logic:
-
-```bash
-npm test
-
-✔ detectManifestKind identifies manifest types by filename and content
-✔ parseTechStack parses package.json including devDependencies and optionalDependencies
-✔ parseTechStack parses python requirements.txt with comments, extras, and version specifiers
-✔ parseTechStack parses go.mod files
-✔ parseTechStack parses Dockerfiles for base image and packages
-✔ parseTechStack parses Java Maven pom.xml and Gradle build.gradle files
-✔ computeSha256Hex generates consistent deterministic SHA-256 hash
-✔ scanTechStack matches local CVE catalog rules for vulnerable packages
-✔ scanTechStack ignores packages with non-vulnerable patched versions
-✔ scanTechStack safely builds remediation lines without corrupted partial string replacement
-✔ scanTechStack detects Java Spring4Shell and Log4Shell in pom.xml files
-
-Passed 11/11 tests
-```
+**APK Output Location**:
+`android/app/build/outputs/apk/debug/app-debug.apk`
 
 ---
 
